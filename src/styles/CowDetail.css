@@ -1,0 +1,273 @@
+/* src/styles/CowDetail.css */
+
+.cow-detail-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Header con título y botón volver */
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.detail-header h2 {
+  color: #2c3e50;
+  font-size: 3rem;
+  margin: 0;
+}
+
+
+/* Contenido principal - foto e información */
+.detail-content {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Sección de la foto */
+.detail-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.detail-photo img {
+  width: 100%;
+  max-width: 280px;
+  height: 280px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 3px solid #e8e8e8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.detail-photo img:hover {
+  transform: scale(1.02);
+}
+
+/* Información del animal */
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: #ecf4fc;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.detail-info p {
+  margin: 0;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.detail-info p:last-child {
+  border-bottom: none;
+}
+
+.detail-info strong {
+  color: #2c3e50;
+  font-weight: 600;
+  display: inline-block;
+  min-width: 160px;
+  margin-right: 0.5rem;
+}
+
+/* Estilos para el tipo de propiedad */
+.ownership-propiedad {
+  background: #526b58;
+  color: #f8f8f8;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #c3e6cb;
+}
+
+.ownership-particion {
+  background: #fff3cd;
+  color: #856404;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #ffeaa7;
+}
+
+/* Botones de acción */
+.detail-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+/* Estilos base para botones */
+.btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* Botón primario */
+.btn.primary {
+  background: linear-gradient(135deg, #47e641, #167934);
+  color: white;
+}
+
+.btn.primary:hover {
+  background: linear-gradient(135deg, #14700c, #1ca010);
+}
+
+/* Botón secundario */
+.btn.secondary {
+  background: #7d6d6c;
+  color: white;
+}
+
+.btn.secondary:hover {
+  background: #ad5852;
+}
+
+/* Botón de volver */
+.detail-header .btn.secondary {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  background: #e9ecef;
+  color: #495057;
+  margin-top: 30px;
+}
+
+.detail-header .btn.secondary:hover {
+  background: #dee2e6;
+  color: #212529;
+}
+
+/* Estilos para el estado de carga */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.container p {
+  font-size: 1.1rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cow-detail-container {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .detail-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .detail-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .detail-photo img {
+    max-width: 250px;
+    height: 250px;
+  }
+  
+  .detail-info strong {
+    min-width: auto;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  
+  .detail-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cow-detail-container {
+    margin: 0.5rem;
+    padding: 0.75rem;
+  }
+  
+  .detail-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .detail-photo img {
+    max-width: 200px;
+    height: 200px;
+  }
+  
+  .detail-info {
+    padding: 0.75rem;
+  }
+  
+  .detail-info p {
+    padding: 0.5rem 0;
+    font-size: 0.95rem;
+  }
+}
+
+/* Animaciones suaves */
+.cow-detail-container {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

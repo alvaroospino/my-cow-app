@@ -1,0 +1,297 @@
+/* Estilos para las cartas de vacas - Aplicación Agropecuaria */
+
+.cow-card {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #34495e7a;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  border: 1px solid #e5e7eb;
+  position: relative;
+  max-width: 380px;
+  min-width: 320px;
+  margin: 0 auto;
+}
+
+.cow-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+}
+
+/* Sección de la foto */
+.cow-card-photo {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background: #f9fafb;
+}
+
+.cow-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.cow-card:hover .cow-card-photo img {
+  transform: scale(1.02);
+}
+
+/* Información de la carta */
+.cow-card-info {
+  padding: 24px;
+  flex-grow: 1;
+  background: white;
+}
+
+.cow-card-info h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.3rem;
+  color: #1f2937;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-transform: capitalize;
+}
+
+.cow-card-info p {
+  margin: 12px 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cow-card-info p:first-of-type {
+  margin-top: 0;
+}
+
+/* Estilos para tipos de vaca */
+.cow-type-vaca {
+  background: #f87171;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cow-type-toro {
+  background: #4b5563;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cow-type-novillo {
+  background: #8b5cf6;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cow-type-ternero {
+  background: #10b981;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cow-type-becerra {
+  background: #ec4899;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Estilos para tipo de propiedad */
+.ownership-propiedad {
+  background: #3b82f6;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ownership-particion {
+  background: #f59e0b;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Fecha de registro */
+.card-date {
+  font-size: 0.85rem !important;
+  color: #9ca3af !important;
+  margin-top: 14px !important;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* Sección de acciones */
+.cow-card-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 18px 24px;
+  background: #7f8c8d2b;
+  border-top: 1px solid #f3f4f6;
+  gap: 12px;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.icon-btn:active {
+  transform: translateY(0);
+}
+
+/* Botón de ver */
+.view-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.view-btn:hover {
+  background: #2563eb;
+}
+
+/* Botón de editar */
+.edit-btn {
+  background: #10b981;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #059669;
+}
+
+/* Botón de eliminar */
+.delete-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #dc2626;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cow-card {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .cow-card-photo {
+    height: 160px;
+  }
+  
+  .cow-card-info {
+    padding: 14px;
+  }
+  
+  .cow-card-info h3 {
+    font-size: 1.5rem;
+  }
+  
+  .cow-card-actions {
+    padding: 12px 14px;
+  }
+  
+  .icon-btn {
+    width: 62px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cow-card-photo {
+    height: 140px;
+  }
+  
+  .cow-card-info {
+    padding: 12px;
+  }
+  
+  .cow-card-info p {
+    font-size: 0.85rem;
+  }
+  
+  .cow-type-vaca,
+  .cow-type-toro,
+  .cow-type-novillo,
+  .cow-type-ternero,
+  .cow-type-becerra,
+  .ownership-propiedad,
+  .ownership-particion {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Contenedor de cartas (si las tienes en grid) */
+.cows-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .cows-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cows-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+}

@@ -1,0 +1,226 @@
+/* src/styles/Dashboard.css */
+
+.dashboard-page {
+  padding: 20px;
+  max-width: 900px;
+  margin: 20px auto;
+  background-color: #f8f9fa; /* Fondo más claro para el dashboard */
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #34495e; /* Azul oscuro para los títulos */
+}
+
+.dashboard-header h1 {
+  font-size: 2.2em;
+  margin-bottom: 10px;
+}
+
+.dashboard-header p {
+  font-size: 1.1em;
+  color: #7f8c8d;
+}
+
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Una columna por defecto para móviles */
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+@media (min-width: 600px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 2 o 3 columnas en tablets/desktop */
+  }
+}
+
+.stat-card {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 23%);
+  text-align: center;
+  transition: transform 0.2s ease-in-out;
+  border-bottom: 5px solid; /* Borde de color para cada tarjeta */
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card .stat-icon {
+  font-size: 3em;
+  margin-bottom: 15px;
+  color: #3498db; /* Color por defecto del icono */
+}
+
+.stat-card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #555;
+  font-size: 1.2em;
+}
+
+.stat-card .stat-value {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: #2c3e50; /* Azul oscuro fuerte */
+}
+
+/* Colores específicos para las tarjetas de estadísticas */
+.stat-card.total-cows { border-color: #3498db; } /* Azul */
+.stat-card.total-cows .stat-icon { color: #3498db; }
+
+.stat-card.owned-cows { border-color: #28a745; } /* Verde */
+.stat-card.owned-cows .stat-icon { color: #28a745; }
+
+.stat-card.share-cows { border-color: #ffc107; } /* Amarillo */
+.stat-card.share-cows .stat-icon { color: #ffc107; }
+
+
+.dashboard-actions {
+  display: flex;
+  flex-direction: column; /* Columnas por defecto para móvil */
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+@media (min-width: 500px) {
+  .dashboard-actions {
+    flex-direction: row; /* Fila en pantallas más grandes */
+    justify-content: center;
+  }
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 25px;
+  font-size: 1.1em;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  flex: 1; /* Para que ocupen el espacio disponible en fila */
+  min-width: 250px; /* Ancho mínimo para botones grandes */
+  text-decoration: none; /* Si los conviertes en Link */
+}
+
+.action-button span {
+    white-space: nowrap; /* Evita que el texto se rompa */
+}
+
+.action-button svg {
+  font-size: 1.3em;
+}
+
+.action-button.primary {
+  background-color: #2ecc71; /* Verde esmeralda */
+  color: white;
+  border: none;
+}
+
+.action-button.primary:hover {
+  background-color: #27ae60;
+  transform: translateY(-2px);
+}
+
+.action-button.secondary {
+  background-color: #3498db; /* Azul */
+  color: white;
+  border: none;
+}
+
+.action-button.secondary:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+.dashboard-latest-cows {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-latest-cows h2 {
+  text-align: center;
+  color: #34495e;
+  margin-bottom: 25px;
+  font-size: 1.8em;
+}
+
+.latest-cows-list {
+  display: flex;
+  flex-direction: column; /* Apiladas en móvil */
+  gap: 15px;
+}
+
+.latest-cow-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background-color: #82af8c;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.latest-cow-item:hover {
+  background-color: #759b7e;
+  border: 2px solid #0af541
+}
+
+.latest-cow-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  box-shadow: 0 4px 12px #e8f1ea;
+  flex-shrink: 0; /* No se encoge */
+}
+
+.latest-cow-item .item-info {
+  flex-grow: 1;
+}
+
+.latest-cow-item .item-info h4 {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.latest-cow-item .item-info p {
+  margin: 0;
+  font-size: 0.9em;
+}
+
+/* Reutilizar estilos de propiedad de CowCard.css para las últimas vacas */
+.latest-cow-item .ownership-propiedad {
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.latest-cow-item .ownership-particion {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+.no-cows-message {
+    text-align: center;
+    color: #777;
+    padding: 30px;
+    font-size: 1.1em;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
+}
