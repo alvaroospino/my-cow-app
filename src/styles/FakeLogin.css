@@ -5,7 +5,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh; /* Ocupa toda la altura de la ventana */
-  background: linear-gradient(to right, #3498db, #8e44ad); /* Degradado de fondo */
+  background: linear-gradient(to right, #5c8569, #3bb660); /* Degradado de fondo */
   padding: 20px;
   box-sizing: border-box; /* Incluye padding en el tamaño total */
 }

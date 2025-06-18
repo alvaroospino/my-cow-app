@@ -1,49 +1,82 @@
 // src/components/CowForm.jsx
 import React, { useState, useEffect } from 'react';
+// [CAMBIO PARA INDEXEDDB] Importamos las funciones de IndexedDB
+import { getImage, deleteImage } from '../utils/indexedDb';
 // Importamos un CSS simple para el formulario
 import '../styles/CowForm.css';
 // Importamos la imagen de placeholder para cuando no haya foto
 import placeholderCow from '../assets/placeholder-cow.png';
 
 const CowForm = ({ initialData = {}, onSubmit, onCancel }) => {
-  // Estado local para los datos del formulario
+  // Estado local para los datos del formulario (photo ya NO es Base64, puede ser un ID o null)
   const [formData, setFormData] = useState({
     name: initialData.name || '',
-    photo: initialData.photo || '', // Base64 de la imagen o URL (null se cambia a '' para consistencia)
-    ownershipType: initialData.ownershipType || 'propiedad', // Valor por defecto
+    // [CAMBIO PARA INDEXEDDB] 'photo' ahora puede almacenar un ID de imagen o ser vacío
+    photo: initialData.photo || '',
+    ownershipType: initialData.ownershipType || 'propiedad',
     observations: initialData.observations || '',
-    registrationDate: initialData.registrationDate || new Date().toISOString().slice(0, 10), // Fecha actual en formato YYYY-MM-DD
-    type: initialData.type || 'vaca' // <--- NUEVO CAMPO: Tipo de Ganado con valor por defecto
+    registrationDate: initialData.registrationDate || new Date().toISOString().slice(0, 10),
+    type: initialData.type || 'vaca'
   });
 
-  // Estado para la vista previa de la foto
-  const [photoPreview, setPhotoPreview] = useState(initialData.photo || placeholderCow);
+  // [CAMBIO PARA INDEXEDDB] Nuevo estado para el archivo de imagen seleccionado (File/Blob)
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  // Estado para la vista previa de la foto (ahora será una URL de objeto o Base64 del placeholder)
+  const [photoPreview, setPhotoPreview] = useState(placeholderCow);
 
-  // Efecto para actualizar el formulario y la vista previa si initialData cambia (útil para edición)
+  // [CAMBIO PARA INDEXEDDB] Efecto para cargar la imagen de IndexedDB para edición y limpiar URLs
   useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
-      setFormData({
-        name: initialData.name || '',
-        photo: initialData.photo || '',
-        ownershipType: initialData.ownershipType || 'propiedad',
-        observations: initialData.observations || '',
-        registrationDate: initialData.registrationDate || new Date().toISOString().slice(0, 10),
-        type: initialData.type || 'vaca' // Asegura que el tipo se cargue o tenga un valor por defecto
-      });
-      setPhotoPreview(initialData.photo || placeholderCow);
-    } else {
-      // Reiniciar el formulario y la vista previa si no hay initialData (nuevo registro)
-      setFormData({
-        name: '',
-        photo: '',
-        ownershipType: 'propiedad',
-        observations: '',
-        registrationDate: new Date().toISOString().slice(0, 10),
-        type: 'vaca'
-      });
-      setPhotoPreview(placeholderCow);
-    }
-  }, [initialData]);
+    let currentPhotoUrl = initialData.photo || placeholderCow; // photo podría ser una URL Base64 antigua o un ID
+
+    // Si initialData.id existe (modo edición) y no hay un archivo seleccionado
+    // intentamos cargar la imagen de IndexedDB
+    const loadExistingImage = async () => {
+      if (initialData.id) { // Solo si es una vaca existente
+        try {
+          const imageBlob = await getImage(initialData.id);
+          if (imageBlob) {
+            const url = URL.createObjectURL(imageBlob);
+            setPhotoPreview(url);
+            setSelectedImageFile(imageBlob); // Establecer el blob como el archivo actual
+            currentPhotoUrl = url; // Actualizar la URL para limpieza
+          } else {
+            // Si no hay imagen en IndexedDB para este ID
+            setPhotoPreview(initialData.photo || placeholderCow);
+          }
+        } catch (error) {
+          console.error("Error loading image from IndexedDB:", error);
+          setPhotoPreview(initialData.photo || placeholderCow); // Fallback a lo que haya
+        }
+      } else {
+        // Para nuevo formulario, limpia todo
+        setPhotoPreview(placeholderCow);
+        setSelectedImageFile(null);
+      }
+    };
+
+    setFormData({ // Actualiza formData con los datos iniciales
+      name: initialData.name || '',
+      photo: initialData.photo || '', // Mantener 'photo' como ID o vacío
+      ownershipType: initialData.ownershipType || 'propiedad',
+      observations: initialData.observations || '',
+      registrationDate: initialData.registrationDate || new Date().toISOString().slice(0, 10),
+      type: initialData.type || 'vaca'
+    });
+
+    loadExistingImage();
+
+    // Función de limpieza para revocar Object URLs
+    return () => {
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview);
+      }
+      // Si la URL se cambió durante la vida del componente, revoca la anterior también
+      if (currentPhotoUrl && currentPhotoUrl.startsWith('blob:') && currentPhotoUrl !== photoPreview) {
+          URL.revokeObjectURL(currentPhotoUrl);
+      }
+    };
+  }, [initialData.id, initialData.photo, initialData.name, initialData.ownershipType, initialData.observations, initialData.registrationDate, initialData.type]); // Añadir todas las dependencias de initialData
+
 
   // Manejador de cambios en los inputs de texto y select
   const handleChange = (e) => {
@@ -54,46 +87,47 @@ const CowForm = ({ initialData = {}, onSubmit, onCancel }) => {
     }));
   };
 
-  // Manejador para el input de tipo 'file' (foto)
+  // [CAMBIO PARA INDEXEDDB] Manejador para el input de tipo 'file' (foto)
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        // Almacena la imagen como Base64
-        setFormData((prevData) => ({
-          ...prevData,
-          photo: reader.result,
-        }));
-        setPhotoPreview(reader.result); // Actualiza la vista previa
-      };
-      reader.readAsDataURL(file); // Lee el archivo como una URL de datos (Base64)
+      setSelectedImageFile(file); // Almacena el archivo File directamente
+      setPhotoPreview(URL.createObjectURL(file)); // Crea una URL de objeto para la vista previa
     } else {
-      // Si no se selecciona ningún archivo o se cancela la selección
-      setFormData((prevData) => ({
-        ...prevData,
-        photo: '', // Limpia la foto en el estado
-      }));
-      setPhotoPreview(placeholderCow); // Vuelve al placeholder
+      setSelectedImageFile(null);
+      setPhotoPreview(placeholderCow);
     }
   };
 
-  // Manejador para eliminar la foto actual
-  const handleClearPhoto = () => {
+  // [CAMBIO PARA INDEXEDDB] Manejador para eliminar la foto actual
+  const handleClearPhoto = async () => {
     setFormData((prevData) => ({
       ...prevData,
-      photo: '',
+      photo: '', // Indica que no hay imagen asociada en el modelo de la vaca
     }));
-    setPhotoPreview(placeholderCow);
+    setSelectedImageFile(null); // Limpiar el archivo seleccionado
+    setPhotoPreview(placeholderCow); // Volver al placeholder
+
     // Opcional: limpiar el input de tipo file si es necesario
     const photoInput = document.getElementById('photo-upload');
     if (photoInput) photoInput.value = '';
+
+    // Si estamos editando una vaca y tenía una imagen, la eliminamos de IndexedDB
+    if (initialData.id && initialData.photo) { // initialData.photo se usará para indicar que existía una imagen
+      try {
+        await deleteImage(initialData.id);
+        console.log(`Imagen de la vaca ${initialData.id} eliminada de IndexedDB.`);
+      } catch (error) {
+        console.error("Error al eliminar imagen de IndexedDB:", error);
+      }
+    }
   };
 
   // Manejador para el envío del formulario
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData); // Llama a la función onSubmit pasada por props
+    // [CAMBIO PARA INDEXEDDB] Pasamos formData y el archivo de imagen seleccionado
+    onSubmit({ ...formData, imageFile: selectedImageFile });
   };
 
   return (
@@ -107,12 +141,13 @@ const CowForm = ({ initialData = {}, onSubmit, onCancel }) => {
             type="file"
             id="photo-upload"
             name="photo"
-            accept="image/*" // Solo acepta archivos de imagen
+            accept="image/*"
             onChange={handlePhotoChange}
-            style={{ display: 'none' }} // Oculta el input de archivo original
+            style={{ display: 'none' }}
           />
         </label>
-        {formData.photo && formData.photo !== placeholderCow && (
+        {/* [CAMBIO PARA INDEXEDDB] Condición para mostrar "Quitar Foto" */}
+        {photoPreview !== placeholderCow && (
           <button
             type="button"
             className="btn danger clear-photo-btn"
@@ -186,7 +221,7 @@ const CowForm = ({ initialData = {}, onSubmit, onCancel }) => {
             name="type"
             value={formData.type}
             onChange={handleChange}
-            required // Este campo también debe ser obligatorio
+            required
           >
             <option value="vaca">Vaca</option>
             <option value="ternero">Ternero</option>

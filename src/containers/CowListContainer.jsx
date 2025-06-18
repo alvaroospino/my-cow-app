@@ -5,10 +5,11 @@ import useCowData from '../hooks/useCowData';
 import CowCard from '../components/CowCard';
 import Modal from '../components/Modal';
 import { FaDownload, FaUpload } from 'react-icons/fa'; // Iconos para importar/exportar
+// [CAMBIO PARA INDEXEDDB] Importamos deleteImage y getImage de IndexedDB
+import { deleteImage, getImage } from '../utils/indexedDb'; // getImage se usará en CowCard
 
 const CowListContainer = () => {
   const navigate = useNavigate();
-  // Incluimos exportData y importData del hook
   const { cows, deleteCow, exportData, importData, getCowById } = useCowData();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,7 +19,6 @@ const CowListContainer = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [cowToDeleteId, setCowToDeleteId] = useState(null);
 
-  // Funciones para manejar acciones de CowCard
   const handleView = (id) => {
     navigate(`/vacas/${id}`);
   };
@@ -27,15 +27,29 @@ const CowListContainer = () => {
     navigate(`/vacas/editar/${id}`);
   };
 
+  // [CAMBIO PARA INDEXEDDB] Modificamos handleDeleteClick para preparar la eliminación de la imagen
   const handleDeleteClick = (id) => {
     setCowToDeleteId(id);
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
+  // [CAMBIO PARA INDEXEDDB] Modificamos confirmDelete para eliminar también la imagen de IndexedDB
+  const confirmDelete = async () => { // Marcar como async
     if (cowToDeleteId) {
-      deleteCow(cowToDeleteId);
-      alert('Vaca eliminada con éxito!');
+      const cowName = getCowById(cowToDeleteId)?.name || 'esta vaca';
+      const success = deleteCow(cowToDeleteId); // Esto actualiza el estado de las vacas
+
+      if (success) {
+        try {
+          await deleteImage(cowToDeleteId);
+          console.log(`Imagen de vaca ${cowToDeleteId} eliminada de IndexedDB.`);
+        } catch (error) {
+          console.error("Error al eliminar imagen de IndexedDB:", error);
+        }
+        alert(`Vaca "${cowName}" eliminada con éxito!`);
+      } else {
+        alert('Error al eliminar la vaca.');
+      }
       setShowDeleteModal(false);
       setCowToDeleteId(null);
     }
@@ -46,7 +60,6 @@ const CowListContainer = () => {
     setCowToDeleteId(null);
   };
 
-  // Lógica de filtrado y ordenamiento de vacas
   const filteredAndSortedCows = useMemo(() => {
     let processedCows = [...cows];
 
@@ -78,8 +91,11 @@ const CowListContainer = () => {
     return processedCows;
   }, [cows, searchTerm, filterType, sortOrder]);
 
-  // --- Lógica de Exportar Datos ---
   const handleExportData = () => {
+    // NOTA: Esta exportación SOLO exportará los datos de la vaca (nombre, etc.),
+    // NO las imágenes de IndexedDB. Para exportar las imágenes, necesitarías
+    // leer todos los Blobs de IndexedDB, convertirlos a Base64 y añadirlos
+    // al JSON, lo cual puede generar un archivo JSON muy grande.
     const dataToExport = exportData();
     if (dataToExport.length === 0) {
       alert('No hay datos para exportar.');
@@ -87,7 +103,7 @@ const CowListContainer = () => {
     }
 
     const filename = `inventario_vacas_${new Date().toISOString().slice(0, 10)}.json`;
-    const jsonStr = JSON.stringify(dataToExport, null, 2); // Formato legible
+    const jsonStr = JSON.stringify(dataToExport, null, 2);
 
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -97,12 +113,15 @@ const CowListContainer = () => {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url); // Libera la URL del objeto
+    URL.revokeObjectURL(url);
     alert(`Datos exportados como "${filename}"`);
   };
 
-  // --- Lógica de Importar Datos ---
   const handleImportData = (event) => {
+    // NOTA: Esta importación SOLO importará los datos de la vaca,
+    // NO las imágenes. Si importas un JSON que contenía Base64 en el campo
+    // 'photo', se guardará como Base64 en el modelo, pero NO se transferirá
+    // automáticamente a IndexedDB.
     const file = event.target.files[0];
     if (!file) {
       return;
@@ -112,9 +131,8 @@ const CowListContainer = () => {
     reader.onload = (e) => {
       try {
         const importedData = JSON.parse(e.target.result);
-        if (importData(importedData)) { // Llama a la función de importación del hook
+        if (importData(importedData)) {
           alert('Datos importados con éxito! La página se actualizará.');
-          // El hook ya recarga los datos, lo que provocará un re-render
         } else {
           alert('Error al importar datos. Asegúrate de que el archivo sea un JSON válido de vacas.');
         }
@@ -173,7 +191,6 @@ const CowListContainer = () => {
         </div>
       </div>
 
-      {/* Botones de Importar/Exportar */}
       <div className="data-management-actions">
         <button className="btn btn-export" onClick={handleExportData}>
           <FaDownload /> Exportar Datos
@@ -185,7 +202,7 @@ const CowListContainer = () => {
             id="import-file"
             accept=".json"
             onChange={handleImportData}
-            style={{ display: 'none' }} // Esconder el input de archivo
+            style={{ display: 'none' }}
           />
         </label>
       </div>
@@ -199,18 +216,19 @@ const CowListContainer = () => {
       ) : (
         <div className="cow-list-grid">
           {filteredAndSortedCows.map((cow) => (
+            // [CAMBIO PARA INDEXEDDB] Pasa getImage para que CowCard cargue la imagen
             <CowCard
               key={cow.id}
               cow={cow}
               onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
+              getImageFromDb={getImage} // Pasa la función para cargar la imagen
             />
           ))}
         </div>
       )}
 
-      {/* Modal de confirmación de eliminación */}
       {showDeleteModal && (
         <Modal
           title="Confirmar Eliminación"
