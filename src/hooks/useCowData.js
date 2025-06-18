@@ -1,13 +1,12 @@
-// src/hooks/useCowData.js
 import { useState, useEffect, useCallback } from 'react';
 import * as cowService from '../services/cowService';
-// [CAMBIO PARA INDEXEDDB] Importamos clearAllImages para una limpieza profunda si se reinician los datos
-import { clearAllImages } from '../utils/indexedDb';
+import { getImage } from '../utils/indexedDb'; // <--- ¡Importa getImage de IndexedDB!
 
 const useCowData = () => {
   const [cows, setCows] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Función interna para cargar las vacas, reutilizable
   const loadCowsData = useCallback(() => {
     setIsLoading(true);
     const storedCows = cowService.getCows();
@@ -15,15 +14,15 @@ const useCowData = () => {
     setIsLoading(false);
   }, []);
 
+  // Carga las vacas de LocalStorage al iniciar el componente
   useEffect(() => {
     loadCowsData();
   }, [loadCowsData]);
 
-  // [CAMBIO PARA INDEXEDDB] addCowItem ahora devuelve el objeto de vaca recién añadido (con su ID)
   const addCowItem = useCallback((newCowData) => {
-    const addedCow = cowService.addCow(newCowData); // Asegúrate que cowService.addCow asigne un ID
+    const addedCow = cowService.addCow(newCowData);
     setCows(prevCows => [...prevCows, addedCow]);
-    return addedCow; // Devolvemos el objeto completo con el ID asignado
+    return addedCow;
   }, []);
 
   const getCowItemById = useCallback((id) => {
@@ -43,26 +42,21 @@ const useCowData = () => {
     if (success) {
       setCows(prevCows => prevCows.filter(cow => cow.id !== id));
     }
-    // [CAMBIO PARA INDEXEDDB] La eliminación de la imagen de IndexedDB se maneja en los contenedores
-    // (CowDetailContainer y CowListContainer) porque tienen el ID y pueden hacer el await.
-    // Aquí solo nos enfocamos en el modelo de datos.
     return success;
   }, []);
+
+  // --- NUEVA FUNCIÓN PARA OBTENER IMAGEN POR ID DESDE INDEXEDDB ---
+  const getImageFromDb = useCallback(async (id) => {
+    return await getImage(id); // Llama a la función getImage de indexedDb.js
+  }, []); // Sin dependencias, ya que getImage no necesita datos externos del hook
 
   const exportData = useCallback(() => {
     return cowService.exportAllCows();
   }, []);
 
-  const importData = useCallback(async (data) => { // Marcar como async
+  const importData = useCallback((data) => {
     const success = cowService.importCows(data);
     if (success) {
-      // [CAMBIO PARA INDEXEDDB] Si importamos nuevos datos, es una buena práctica
-      // limpiar las imágenes existentes en IndexedDB (si no vas a reimportar imágenes).
-      // Si el JSON importado no contiene Base64 o referencias a imágenes de IndexedDB,
-      // las imágenes anteriores quedarían huérfanas si no se limpian.
-      // Depende de tu estrategia: si el JSON NO trae imágenes, y las imágenes son solo locales,
-      // entonces borra todas las imágenes de IndexedDB.
-      // await clearAllImages(); // Descomentar si quieres limpiar todas las imágenes al importar
       loadCowsData();
     }
     return success;
@@ -77,6 +71,7 @@ const useCowData = () => {
     deleteCow: deleteCowItem,
     exportData,
     importData,
+    getImageFromDb, // <--- ¡Exporta la nueva función!
   };
 };
 
