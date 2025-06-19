@@ -1,4 +1,4 @@
-/* src/styles/CowForm.css - Añadir o ajustar */
+/* src/styles/CowForm.css */
 
 .cow-form {
     background-color: #ffffff;
@@ -8,6 +8,7 @@
     max-width: 700px;
     margin: 40px auto;
     animation: fadeIn 0.5s ease-out;
+    font-family: 'Roboto', sans-serif; /* Consistencia de fuente */
 }
 
 @keyframes fadeIn {
@@ -15,8 +16,19 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas por defecto */
+    gap: 20px; /* Espacio entre los elementos de la cuadrícula */
+}
+
+/* Para el campo de observaciones que ocupe todo el ancho */
+.form-group.full-width {
+    grid-column: 1 / -1; /* Ocupa todas las columnas disponibles */
+}
+
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 0; /* Eliminamos el margin-bottom si ya tenemos gap en el grid */
 }
 
 .form-group label {
@@ -30,109 +42,99 @@
 .form-group input[type="text"],
 .form-group input[type="date"],
 .form-group textarea,
-.form-group select { /* Añadido select */
+.form-group select {
     width: 100%;
     padding: 12px;
     border: 1px solid #dcdcdc;
     border-radius: 6px;
     font-size: 1em;
     font-family: 'Roboto', sans-serif;
-    box-sizing: border-box; /* Asegura que padding y border no aumenten el ancho total */
+    box-sizing: border-box; /* Para que el padding no aumente el ancho total */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .form-group input[type="text"]:focus,
 .form-group input[type="date"]:focus,
 .form-group textarea:focus,
-.form-group select:focus { /* Añadido select */
+.form-group select:focus {
     border-color: #3498db;
-    outline: none;
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    outline: none;
 }
 
-.form-group textarea {
-    resize: vertical; /* Permite redimensionar verticalmente */
-    min-height: 80px;
+/* Estilos específicos para el campo de la foto */
+.photo-upload-group {
+    grid-column: 1 / -1; /* La sección de la foto siempre ocupa todo el ancho */
+    text-align: center;
+    margin-bottom: 20px; /* Espacio debajo de la sección de la foto */
 }
 
-.radio-group {
-    display: flex;
-    gap: 25px;
-    margin-top: 10px;
-}
-
-.radio-group label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-weight: normal;
-    color: #555;
-}
-
-.radio-group input[type="radio"] {
-    transform: scale(1.2);
-    cursor: pointer;
-}
-
-/* Estilos para el grid de campos */
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-}
-
-@media (min-width: 600px) {
-    .form-grid {
-        grid-template-columns: 1fr 1fr; /* Dos columnas en pantallas más grandes */
-    }
-    .form-group.full-width {
-        grid-column: 1 / -1; /* Ocupa todo el ancho en el grid */
-    }
-}
-
-
-/* Sección de foto */
-.form-photo-upload {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 30px;
-    border: 2px dashed #e0e0e0;
-    padding: 20px;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-}
-
-.photo-preview-image {
-    width: 150px;
+.photo-label {
+    display: inline-block; /* Para centrar y controlar el tamaño */
+    position: relative;
+    width: 150px; /* Tamaño fijo para la foto */
     height: 150px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid #3498db;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.upload-btn {
-    padding: 10px 18px;
-    font-size: 0.95em;
-    display: inline-flex;
+    border: 2px dashed #bdc3c7;
+    border-radius: 50%; /* Para hacerla circular */
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    margin: 0 auto 15px auto; /* Centrar y añadir espacio abajo */
+    display: flex; /* Para centrar contenido */
     align-items: center;
     justify-content: center;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
+.photo-label:hover {
+    border-color: #3498db;
+    box-shadow: 0 0 0 5px rgba(52, 152, 219, 0.1);
+}
+
+.photo-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ajusta la imagen sin distorsionarla */
+    border-radius: 50%; /* Asegura que la imagen sea circular */
+    display: block;
+}
+
+.upload-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 50%; /* Para que el overlay también sea circular */
+}
+
+.photo-label:hover .upload-overlay {
+    opacity: 1;
+}
+
+.upload-overlay span {
+    font-size: 0.9em;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* Botón para limpiar la foto (si lo reintroduces) */
 .clear-photo-btn {
     background-color: #e74c3c; /* Rojo para el botón de eliminar */
     color: white;
     border: none;
-    padding: 10px 18px;
-    font-size: 0.95em;
+    padding: 8px 15px; /* Ajustado el padding */
+    font-size: 0.85em; /* Ajustado el tamaño de fuente */
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    margin-top: 10px; /* Espacio encima del botón */
 }
 
 .clear-photo-btn:hover {
@@ -175,27 +177,31 @@
 }
 
 .btn.secondary:hover {
-    background-color: #7a463d;
+    background-color: #7f8c8d;
     transform: translateY(-2px);
 }
 
-.btn.danger {
-    background-color: #e74c3c; /* Rojo para acciones peligrosas */
-    color: white;
-}
-
-.btn.danger:hover {
-    background-color: #c0392b;
-}
-
-/* Media queries para responsividad */
-@media (max-width: 768px) {
-    .cow-form {
-        padding: 20px;
-        margin: 20px auto;
+/* Media Queries para responsividad */
+@media (max-width: 600px) {
+    .form-grid {
+        grid-template-columns: 1fr; /* Una sola columna en pantallas pequeñas */
     }
 
-    .form-grid {
-        grid-template-columns: 1fr;
+    .form-group.full-width {
+        grid-column: auto; /* Deshacer el full-width para que se ajuste */
+    }
+
+    .cow-form {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column; /* Botones apilados en pantallas pequeñas */
+        align-items: stretch;
+    }
+
+    .btn {
+        width: 100%; /* Botones de ancho completo */
     }
 }
