@@ -1,73 +1,71 @@
-// src/containers/CowDetailContainer.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import useCowData from '../hooks/useCowData';
-// [CAMBIO PARA INDEXEDDB] Importamos getImage de IndexedDB
-import { getImage, deleteImage } from '../utils/indexedDb';
-import placeholderCow from '../assets/placeholder-cow.png';
+import useCowData from '../hooks/useCowData'; // Nuestro custom hook
+import placeholderCow from '../assets/placeholder-cow.png'; // Para cuando no hay foto
 import Modal from '../components/Modal';
-import '../styles/CowDetail.css';
+import '../styles/CowDetail.css'; // Estilos específicos para el detalle
 
 const CowDetailContainer = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Obtiene el ID de la vaca desde la URL
   const navigate = useNavigate();
-  const { getCowById, isLoading, deleteCow } = useCowData();
+  // Obtiene getCowById, isLoading, deleteCow Y AHORA getImageFromDb
+  const { getCowById, isLoading, deleteCow, getImageFromDb } = useCowData(); 
 
-  const [cow, setCow] = useState(null);
-  // [CAMBIO PARA INDEXEDDB] Estado para la URL de la imagen de detalle
-  const [detailImageUrl, setDetailImageUrl] = useState(placeholderCow);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [cow, setCow] = useState(null); // Estado para almacenar la vaca a mostrar
+  const [detailImageUrl, setDetailImageUrl] = useState(placeholderCow); // Estado para la URL de la imagen de detalle
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // Estado para el modal de eliminación
 
+  // Efecto para cargar los datos de la vaca
   useEffect(() => {
-    let currentObjectUrl = null; // Para limpiar la URL anterior
+    if (!isLoading && id) {
+      const foundCow = getCowById(id);
+      if (foundCow) {
+        setCow(foundCow);
+      } else {
+        console.warn(`Vaca con ID ${id} no encontrada en detalles.`);
+        alert('Vaca no encontrada. Redirigiendo a la lista.');
+        navigate('/vacas');
+      }
+    }
+  }, [id, isLoading, getCowById, navigate]);
 
-    const fetchCowAndImage = async () => {
-      if (!isLoading && id) {
-        const foundCow = getCowById(id);
-        if (foundCow) {
-          setCow(foundCow);
+  // Nuevo efecto para cargar la imagen desde IndexedDB
+  useEffect(() => {
+    let currentObjectUrl = null; // Variable para almacenar el Object URL
 
-          // [CAMBIO PARA INDEXEDDB] Intentar cargar la imagen de IndexedDB
-          if (foundCow.photo) { // Asumimos que foundCow.photo ahora es un ID o un indicador
-            try {
-              const imageBlob = await getImage(id);
-              if (imageBlob) {
-                currentObjectUrl = URL.createObjectURL(imageBlob);
-                setDetailImageUrl(currentObjectUrl);
-              } else {
-                setDetailImageUrl(placeholderCow); // Si no hay blob, usar placeholder
-              }
-            } catch (error) {
-              console.error("Error loading image for detail from IndexedDB:", error);
-              setDetailImageUrl(placeholderCow); // Fallback en caso de error
-            }
+    const loadImage = async () => {
+      if (cow && cow.id) { // Solo si tenemos un objeto 'cow' y tiene un ID
+        try {
+          const imageBlob = await getImageFromDb(cow.id); // Obtiene el Blob de IndexedDB
+          if (imageBlob) {
+            currentObjectUrl = URL.createObjectURL(imageBlob);
+            setDetailImageUrl(currentObjectUrl);
           } else {
-            setDetailImageUrl(placeholderCow); // Si cow.photo es vacío, usar placeholder
+            setDetailImageUrl(placeholderCow); // Si no hay imagen, usa el placeholder
           }
-        } else {
-          console.warn(`Vaca con ID ${id} no encontrada en detalles.`);
-          alert('Vaca no encontrada. Redirigiendo a la lista.');
-          navigate('/vacas');
+        } catch (error) {
+          console.error(`Error loading detail image for cow ${cow.id} from IndexedDB:`, error);
+          setDetailImageUrl(placeholderCow); // Fallback al placeholder en caso de error
         }
+      } else {
+        setDetailImageUrl(placeholderCow); // Si no hay vaca o ID, usa placeholder
       }
     };
 
-    fetchCowAndImage();
+    // Llama a la función de carga de imagen solo cuando 'cow' está disponible
+    if (cow) { 
+      loadImage();
+    }
 
-    // [CAMBIO PARA INDEXEDDB] Función de limpieza para revocar Object URLs
+    // Función de limpieza para revocar el Object URL
     return () => {
       if (currentObjectUrl) {
         URL.revokeObjectURL(currentObjectUrl);
       }
     };
-  }, [id, isLoading, getCowById, navigate]);
+  }, [cow, getImageFromDb]); // Dependencias: recargar si 'cow' o 'getImageFromDb' cambian
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('es-ES', options);
-  };
-
+  // Funciones para manejar la edición y eliminación
   const handleEdit = () => {
     navigate(`/vacas/editar/${cow.id}`);
   };
@@ -76,63 +74,51 @@ const CowDetailContainer = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = async () => { // Marcar como async
+  const confirmDelete = () => {
     if (cow) {
-      const success = deleteCow(cow.id); // Esta función debería actualizar el estado en useCowData
-      if (success) {
-        // [CAMBIO PARA INDEXEDDB] También elimina la imagen de IndexedDB
-        try {
-          await deleteImage(cow.id);
-          console.log(`Imagen de la vaca ${cow.id} eliminada de IndexedDB tras eliminar la vaca.`);
-        } catch (error) {
-          console.error("Error al eliminar imagen de IndexedDB durante eliminación de vaca:", error);
-        }
-
-        alert(`Vaca "${cow.name}" eliminada con éxito.`);
-        navigate('/vacas');
-      } else {
-        alert('Error al eliminar la vaca.');
-      }
+      deleteCow(cow.id);
+      setShowDeleteModal(false);
+      alert('Vaca eliminada con éxito.');
+      navigate('/vacas'); // Redirige a la lista después de eliminar
     }
-    setShowDeleteModal(false);
   };
-
 
   const cancelDelete = () => {
     setShowDeleteModal(false);
   };
 
-  if (isLoading || cow === null) {
+  // Función para formatear la fecha
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('es-ES', options);
+  };
+
+  // Muestra mensaje de carga si los datos aún no están listos
+  if (isLoading || !cow) {
     return (
-      <div className="container">
+      <div className="container cow-detail-container">
         <p>Cargando detalles de la vaca...</p>
       </div>
     );
   }
 
-  if (!cow) {
-    return (
-      <div className="container">
-        <p>No se encontraron detalles para esta vaca.</p>
-        <button className="btn primary" onClick={() => navigate('/vacas')}>Volver a la lista</button>
-      </div>
-    );
-  }
-
   return (
-    <div className="cow-detail-container">
-      <div className="detail-header">
-        <button className="btn secondary" onClick={() => navigate(-1)}>Volver</button>
-        <h2>Detalles de {cow.name}</h2>
-      </div>
-
-      <div className="detail-content">
+    <div className="container cow-detail-container">
+      <h2>Detalles de la Vaca: {cow.name}</h2>
+      <div className="detail-card">
         <div className="detail-photo">
-          {/* [CAMBIO PARA INDEXEDDB] Usamos detailImageUrl */}
-          <img src={detailImageUrl} alt={`Foto de ${cow.name}`} />
+          {/* Usa la URL de la imagen cargada asíncronamente */}
+          <img src={detailImageUrl} alt={`Foto de ${cow.name}`} /> 
         </div>
         <div className="detail-info">
           <p><strong>Nombre:</strong> {cow.name}</p>
+          <p>
+            <strong>Tipo de Ganado:</strong>{' '}
+            <span className={`cow-type-${cow.type || 'vaca'}`}>
+              {cow.type ? cow.type.charAt(0).toUpperCase() + cow.type.slice(1) : 'Vaca'}
+            </span>
+          </p>
           <p>
             <strong>Tipo de Propiedad:</strong>{' '}
             <span className={`ownership-${cow.ownershipType}`}>
@@ -149,6 +135,7 @@ const CowDetailContainer = () => {
         <button className="btn secondary" onClick={handleDeleteClick}>Eliminar</button>
       </div>
 
+      {/* Modal de confirmación de eliminación */}
       {showDeleteModal && (
         <Modal
           title="Confirmar Eliminación"

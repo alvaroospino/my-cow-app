@@ -4,15 +4,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import CowForm from '../components/CowForm';
 import useAlert from '../hooks/useAlert';
 import useCowData from '../hooks/useCowData';
-// [CAMBIO PARA INDEXEDDB] Importamos las funciones de IndexedDB
-import { saveImage, deleteImage } from '../utils/indexedDb';
+// Importamos las funciones de IndexedDB (ya las tenías aquí, lo mantengo)
+import { saveImage, deleteImage } from '../utils/indexedDb'; 
 
 const CowFormContainer = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { showAlert, AlertComponent } = useAlert();
 
-  const { cows, isLoading, addCow, getCowById, updateCow } = useCowData();
+  // Asegúrate de desestructurar getImageFromDb aquí
+  const { cows, isLoading, addCow, getCowById, updateCow, getImageFromDb } = useCowData();
 
   const [initialCowData, setInitialCowData] = useState(null);
 
@@ -32,42 +33,37 @@ const CowFormContainer = () => {
     }
   }, [id, isLoading, getCowById, navigate, showAlert]);
 
-  // [CAMBIO PARA INDEXEDDB] Modificamos handleSubmit para manejar el archivo de imagen
-  const handleSubmit = async (formDataWithImage) => { // Ahora recibe el formData incluyendo imageFile
-    const { imageFile, ...cowData } = formDataWithImage; // Separamos el archivo de imagen del resto de los datos de la vaca
-
-    let savedCow; // Para guardar la vaca que se acaba de añadir/actualizar
-    let cowIdToUse; // El ID que usaremos para IndexedDB
+  // Modificamos handleSubmit para manejar el guardado de la foto en IndexedDB
+  const handleSubmit = async (formData) => { // <-- Es importante que sea async
+    const { photo: imageFile, ...cowData } = formData; // Extrae el archivo de imagen (Blob) del formData
+    let cowIdToUse;
 
     if (id) {
-      // Edición
-      savedCow = updateCow({ ...cowData, id });
+      // Si estamos actualizando, actualizamos los datos de la vaca (sin la foto)
+      updateCow({ ...cowData, id });
       cowIdToUse = id;
       showAlert('Vaca actualizada con éxito 🥳', 'success', 3000);
     } else {
-      // Nueva vaca
-      // [CAMBIO PARA INDEXEDDB] addCow ahora DEBE retornar el objeto de la vaca con su ID asignado
-      savedCow = addCow(cowData); // addCow genera y asigna el ID
-      cowIdToUse = savedCow?.id; // Usamos el ID devuelto por addCow
+      // Si estamos añadiendo, primero añadimos la vaca para obtener su ID
+      const addedCow = addCow(cowData); // addCow ya no espera la foto en cowData.
+      cowIdToUse = addedCow.id;
       showAlert('Vaca Registrada con éxito 🥳', 'success', 3000);
     }
 
-    // [CAMBIO PARA INDEXEDDB] Manejo de la imagen después de guardar la vaca
-    if (cowIdToUse) {
-      if (imageFile) {
-        // Si hay un archivo de imagen seleccionado, guárdalo en IndexedDB
-        await saveImage(cowIdToUse, imageFile);
-        console.log(`Imagen para vaca ${cowIdToUse} guardada en IndexedDB.`);
-      } else if (!imageFile && cowData.photo === '') {
-        // Si no hay archivo seleccionado y photo en formData es vacío (significa que la foto fue quitada)
-        // Entonces eliminamos cualquier imagen existente para ese ID en IndexedDB
-        await deleteImage(cowIdToUse);
-        console.log(`Imagen para vaca ${cowIdToUse} eliminada de IndexedDB.`);
-      }
-      // Si !imageFile y cowData.photo NO es vacío, significa que no se cambió la imagen,
-      // y la imagen original ya debería estar en IndexedDB (no hacemos nada).
+    // Lógica de guardado/eliminación de la imagen en IndexedDB
+    // imageFile ahora contendrá el Blob (ya convertido si era HEIC, o el original JPG/PNG)
+    if (imageFile instanceof Blob) { // Asegúrate de que es un Blob
+      await saveImage(cowIdToUse, imageFile); // Guarda la imagen con el ID de la vaca
+      console.log(`Imagen para vaca ${cowIdToUse} guardada en IndexedDB.`);
+    } else if (!imageFile && initialCowData && initialCowData.photo) {
+      // Si NO hay nuevo imageFile y la vaca EXISTENTE tenía foto (initialCowData.photo es el ID de la foto)
+      // esto implica que la foto fue eliminada del formulario
+      await deleteImage(cowIdToUse);
+      console.log(`Imagen para vaca ${cowIdToUse} eliminada de IndexedDB.`);
     }
-
+    // Si !imageFile y initialCowData no tiene photo, significa que no había foto y no se añadió.
+    // Si !imageFile y initialCowData tenía photo, pero no se tocó el input de archivo, entonces `imageFile` será null
+    // y la foto original debe permanecer. En ese caso, no hacemos nada aquí.
 
     setTimeout(() => {
       navigate('/vacas');
@@ -78,7 +74,7 @@ const CowFormContainer = () => {
     navigate('/vacas');
   };
 
-  if (isLoading) {
+  if (isLoading || initialCowData === null) {
     return (
       <div className="container">
         <p>Cargando datos de las vacas...</p>
@@ -86,24 +82,16 @@ const CowFormContainer = () => {
     );
   }
 
-  // Si initialCowData es null y estamos en modo edición, significa que aún estamos esperando
-  if (id && initialCowData === null) {
-    return (
-      <div className="container">
-        <p>Preparando formulario de edición para la vaca...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="container">
       <h2>{id ? 'Editar Vaca' : 'Registrar Nueva Vaca'}</h2>
+      <AlertComponent />
       <CowForm
-        initialData={initialCowData || {}}
+        initialData={initialCowData}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
+        getImageFromDb={getImageFromDb} 
       />
-      <AlertComponent />
     </div>
   );
 };
